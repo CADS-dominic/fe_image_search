@@ -9,8 +9,8 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material'
-import { styled } from '@mui/material/styles'
-import { useEffect, useState } from 'react'
+import axios from 'axios'
+import { useState } from 'react'
 import Dropzone from 'react-dropzone-uploader'
 import 'react-dropzone-uploader/dist/styles.css'
 import './App.css'
@@ -34,30 +34,28 @@ function App() {
 			const reader = new FileReader()
 			reader.readAsDataURL(file)
 			reader.onloadend = () => {
+				// setFile(reader.result.replace(/^data:image\/[a-z]+;base64,/, ''))
 				setFile(reader.result)
 			}
 		}
 	}
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault()
 		const url = 'http://118.69.218.59:7554/identify'
-		fetch(url, {
+		// const url = 'http://localhost:5000'
+		const data = new FormData()
+		data.append('names', names)
+		data.append('lang', lang)
+		data.append('image', file)
+		console.log(names, lang, file)
+		axios(url, {
 			method: 'POST',
-			body: JSON.stringify({
-				names: names,
-				lang: lang,
-				image: file,
-			}),
-		})
-			.then((res) => {
-				return res.json()
-			})
-			.then((res) => {
-				console.log(res)
-			})
-			.catch((e) => {
-				console.log(e)
-			})
+			mode: 'no-cors',
+			headers: {
+				'Content-Type': 'multipart/form-data',
+			},
+			data,
+		}).then((res) => console.log(res))
 	}
 	return (
 		<div className='App'>
