@@ -8,6 +8,8 @@ import {
 	Select,
 	TextField,
 	Typography,
+	CircularProgress,
+	Alert,
 } from '@mui/material'
 import axios from 'axios'
 import { useState } from 'react'
@@ -19,6 +21,9 @@ function App() {
 	const [names, setNames] = useState([])
 	const [lang, setLang] = useState('')
 	const [file, setFile] = useState('')
+	const [preview, setPreview] = useState('')
+	const [isLoading, setLoading] = useState(false)
+	const [response, setResponse] = useState('')
 
 	const handleLangChange = (e) => {
 		setLang(e.target.value)
@@ -30,24 +35,31 @@ function App() {
 		return { url: 'https://httpbin.org/post' }
 	}
 	const handleChangeStatus = ({ meta, file }, status) => {
-		if (status === 'done') {
+		if (status === 'done' || status === 'removed') {
+			setLoading(false)
 			const reader = new FileReader()
 			reader.readAsDataURL(file)
 			reader.onloadend = () => {
-				// setFile(reader.result.replace(/^data:image\/[a-z]+;base64,/, ''))
-				setFile(reader.result)
+				if (status === 'removed') {
+					setFile('')
+					setResponse('')
+				} else {
+					setFile(reader.result.replace(/^data:image\/[a-z]+;base64,/, ''))
+					setPreview(reader.result)
+				}
 			}
+		} else {
+			setLoading(true)
 		}
 	}
 	const handleSubmit = async (e) => {
 		e.preventDefault()
+		setLoading(true)
 		const url = 'http://118.69.218.59:7554/identify'
-		// const url = 'http://localhost:5000'
 		const data = new FormData()
 		data.append('names', names)
 		data.append('lang', lang)
 		data.append('image', file)
-		console.log(names, lang, file)
 		axios(url, {
 			method: 'POST',
 			mode: 'no-cors',
@@ -55,7 +67,11 @@ function App() {
 				'Content-Type': 'multipart/form-data',
 			},
 			data,
-		}).then((res) => console.log(res))
+		}).then((res) => {
+			setLoading(false)
+			setResponse(res.data)
+			console.log(res)
+		})
 	}
 	return (
 		<div className='App'>
@@ -94,10 +110,30 @@ function App() {
 								accept='image/*'
 							/>
 						</Grid>
-						<Grid item sm={12}>
-							<Button variant='contained' fullWidth type='submit'>
-								Submit
-							</Button>
+						<Grid item sm={6}>
+							{preview && response !== '' ? <img src={preview} alt='Preview' /> : null}
+						</Grid>
+						<Grid item sm={6}>
+							{response.code === 2100 ? (
+								<Alert severity='error'>Error!</Alert>
+							) : response.code === 200 ? (
+								response.names.map((name, index) => {
+									return (
+										<Typography key={name} variant='body2' gutterBottom>
+											{name}: {response.scores[index]}
+										</Typography>
+									)
+								})
+							) : null}
+						</Grid>
+						<Grid item sm={12} textAlign='center'>
+							{isLoading ? (
+								<CircularProgress />
+							) : (
+								<Button variant='contained' fullWidth type='submit'>
+									Submit
+								</Button>
+							)}
 						</Grid>
 					</Grid>
 				</form>
