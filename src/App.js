@@ -89,7 +89,7 @@ function App() {
 				>
 					<Grid container spacing={2}>
 						<Grid item sm={12}>
-							<Typography variant='h2' gutterBottom component='div'>
+							<Typography variant='h3' gutterBottom component='div'>
 								IMAGE SEARCH
 							</Typography>
 						</Grid>
