@@ -10,9 +10,11 @@ import {
 	Typography,
 	CircularProgress,
 	Alert,
+	Autocomplete,
+	Link,
 } from '@mui/material'
 import axios from 'axios'
-import { useFormik, setFieldValue } from 'formik'
+import { useFormik } from 'formik'
 import { useState } from 'react'
 import Dropzone from 'react-dropzone-uploader'
 import * as Yup from 'yup'
@@ -23,6 +25,12 @@ function App() {
 	const [preview, setPreview] = useState('')
 	const [isLoading, setLoading] = useState(false)
 	const [response, setResponse] = useState('')
+
+	const recommendation = [
+		{ label: 'quần, áo, dây nịt, giày, áo khoác, nón, đồng hồ, nhẫn, vòng tay, dây chuyền' },
+		{ label: 'ly, chén, chai nước, ấm trà, bàn, ghế' },
+		{ label: 'màn hình, chuột máy tính, bàn phím, tai nghe' },
+	]
 
 	const getUploadParams = ({ meta }) => {
 		return { url: 'https://httpbin.org/post' }
@@ -94,7 +102,7 @@ function App() {
 							</Typography>
 						</Grid>
 						<Grid item sm={12}>
-							<TextField
+							{/* <TextField
 								label='Names'
 								variant='outlined'
 								fullWidth
@@ -103,6 +111,17 @@ function App() {
 								onInput={formik.handleChange}
 								value={formik.values.names}
 								name='names'
+							/> */}
+							<Autocomplete
+								disablePortal
+								options={recommendation}
+								renderInput={(params) => (
+									<TextField {...params} onInput={formik.handleChange} name='names' label='Names' />
+								)}
+								onInputChange={(event, newInputValue) => {
+									formik.setFieldValue('names', newInputValue)
+								}}
+								value={formik.values.names}
 							/>
 							{formik.errors.names ? <Alert severity='error'>{formik.errors.names}</Alert> : null}
 						</Grid>
@@ -134,9 +153,13 @@ function App() {
 							{response.names
 								? response.names.map((name, index) => {
 										return (
-											<Typography key={name} variant='body2' gutterBottom>
+											// <Typography key={name} variant='body2' gutterBottom>
+											// 	- {name}: {response.scores[index]}
+											// </Typography>
+											<Link key={name} href={`https://shopee.vn/search?keyword=${name}`} target='_blank'>
 												- {name}: {response.scores[index]}
-											</Typography>
+												<br />
+											</Link>
 										)
 								  })
 								: null}
