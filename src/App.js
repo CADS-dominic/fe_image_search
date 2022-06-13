@@ -12,6 +12,8 @@ import {
 	Alert,
 	Autocomplete,
 	Link,
+	ImageList,
+	ImageListItem,
 } from '@mui/material'
 import axios from 'axios'
 import { useFormik } from 'formik'
@@ -102,16 +104,6 @@ function App() {
 							</Typography>
 						</Grid>
 						<Grid item sm={12}>
-							{/* <TextField
-								label='Names'
-								variant='outlined'
-								fullWidth
-								placeholder='Jean,Skirt,Tshirt,...'
-								helperText='Separate by comma, no spacebar'
-								onInput={formik.handleChange}
-								value={formik.values.names}
-								name='names'
-							/> */}
 							<Autocomplete
 								disablePortal
 								options={recommendation}
@@ -153,11 +145,8 @@ function App() {
 							{response.names
 								? response.names.map((name, index) => {
 										return (
-											// <Typography key={name} variant='body2' gutterBottom>
-											// 	- {name}: {response.scores[index]}
-											// </Typography>
 											<Link key={name} href={`https://shopee.vn/search?keyword=${name}`} target='_blank'>
-												- {name}: {response.scores[index]}
+												_{name}: {response.scores[index]}
 												<br />
 											</Link>
 										)
@@ -171,6 +160,36 @@ function App() {
 								<Button variant='contained' fullWidth type='submit'>
 									Submit
 								</Button>
+							)}
+						</Grid>
+						<Grid
+							item
+							sm={12}
+							style={{
+								padding: '2.3rem',
+							}}
+						>
+							{response.url && (
+								<ImageList
+									sx={{ width: 500, height: 450 }}
+									cols={3}
+									rowHeight={164}
+									style={{
+										backgroundColor: '#f0f0f0',
+										boxShadow: 'box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px',
+									}}
+								>
+									{response.url.map((item) => (
+										<ImageListItem>
+											<img
+												src={`${item}?w=164&h=164&fit=crop&auto=format`}
+												srcSet={`${item}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
+												loading='lazy'
+												alt=''
+											/>
+										</ImageListItem>
+									))}
+								</ImageList>
 							)}
 						</Grid>
 					</Grid>
