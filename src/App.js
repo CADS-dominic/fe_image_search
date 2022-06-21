@@ -9,11 +9,12 @@ import {
 	TextField,
 	Typography,
 	CircularProgress,
-	Alert,
 	Autocomplete,
 	Link,
 	ImageList,
 	ImageListItem,
+	Box,
+	Card,
 } from '@mui/material'
 import axios from 'axios'
 import { useFormik } from 'formik'
@@ -22,6 +23,7 @@ import Dropzone from 'react-dropzone-uploader'
 import * as Yup from 'yup'
 import 'react-dropzone-uploader/dist/styles.css'
 import './App.css'
+import ResultsTable from './components/ResultsTable'
 
 function App() {
 	const [preview, setPreview] = useState('')
@@ -61,19 +63,25 @@ function App() {
 			names: '',
 			lang: '',
 			image: '',
+			result_number: '',
+			class_image_number: '',
 		},
 		validationSchema: Yup.object({
-			names: Yup.string().min(1).required(),
-			lang: Yup.string().length(2).required(),
-			image: Yup.string().min(1).required(),
+			names: Yup.string().min(1).required('Required'),
+			lang: Yup.string().length(2).required('Required'),
+			image: Yup.string().min(1).required('Required'),
+			result_number: Yup.number().positive().required('Required'),
+			class_image_number: Yup.number().positive().required('Required'),
 		}),
-		onSubmit: ({ names, lang, image }) => {
+		onSubmit: ({ names, lang, image, result_number, class_image_number }) => {
 			setLoading(true)
 			const url = 'http://118.69.218.59:7554/identify'
 			const data = new FormData()
 			data.append('names', names)
 			data.append('lang', lang)
 			data.append('image', image)
+			data.append('result_number', result_number)
+			data.append('class_image_number', class_image_number)
 			axios(url, {
 				method: 'POST',
 				mode: 'no-cors',
@@ -89,7 +97,7 @@ function App() {
 	})
 	return (
 		<div className='App'>
-			<Container maxWidth='sm'>
+			<Container maxWidth='md'>
 				<form
 					className='dropzone'
 					onSubmit={(e) => {
@@ -115,9 +123,18 @@ function App() {
 								}}
 								value={formik.values.names}
 							/>
-							{formik.errors.names ? <Alert severity='error'>{formik.errors.names}</Alert> : null}
+							{formik.errors.names ? (
+								<Typography
+									pl={1.8}
+									style={{
+										color: 'red',
+									}}
+								>
+									{formik.errors.names}
+								</Typography>
+							) : null}
 						</Grid>
-						<Grid item sm={12}>
+						<Grid item sm={4}>
 							<FormControl fullWidth>
 								<InputLabel>Language</InputLabel>
 								<Select value={formik.values.lang} name='lang' onChange={formik.handleChange} label='Language'>
@@ -125,7 +142,60 @@ function App() {
 									<MenuItem value='en'>English</MenuItem>
 								</Select>
 							</FormControl>
-							{formik.errors.lang ? <Alert severity='error'>{formik.errors.lang}</Alert> : null}
+							{formik.errors.lang ? (
+								<Typography
+									pl={1.8}
+									style={{
+										color: 'red',
+									}}
+								>
+									{formik.errors.lang}
+								</Typography>
+							) : null}
+						</Grid>
+						<Grid item sm={4}>
+							<TextField
+								fullWidth
+								label='Number of results'
+								type='number'
+								InputLabelProps={{
+									shrink: true,
+								}}
+								name='result_number'
+								onChange={formik.handleChange}
+							/>
+							{formik.errors.result_number && formik.values.result_number === '' ? (
+								<Typography
+									pl={1.8}
+									style={{
+										color: 'red',
+									}}
+								>
+									{formik.errors.result_number}
+								</Typography>
+							) : null}
+						</Grid>
+						<Grid item sm={4}>
+							<TextField
+								fullWidth
+								label='Number of images per result'
+								type='number'
+								InputLabelProps={{
+									shrink: true,
+								}}
+								name='class_image_number'
+								onChange={formik.handleChange}
+							/>
+							{formik.errors.class_image_number && formik.values.class_image_number === '' ? (
+								<Typography
+									pl={1.8}
+									style={{
+										color: 'red',
+									}}
+								>
+									{formik.errors.class_image_number}
+								</Typography>
+							) : null}
 						</Grid>
 						<Grid item sm={12}>
 							<Dropzone
@@ -135,23 +205,48 @@ function App() {
 								accept='image/*'
 							/>
 							{formik.errors.image && formik.values.image === '' ? (
-								<Alert severity='error'>{formik.errors.image}</Alert>
+								<Typography
+									pl={1.8}
+									style={{
+										color: 'red',
+									}}
+								>
+									{formik.errors.image}
+								</Typography>
 							) : null}
 						</Grid>
 						<Grid item sm={6}>
-							{preview && response !== '' ? <img src={preview} alt='Preview' /> : null}
+							{preview && response !== '' ? (
+								<Card>
+									<img src={preview} alt='Preview' width='auto' height={400} />
+								</Card>
+							) : null}
 						</Grid>
 						<Grid item sm={6}>
-							{response.names
-								? response.names.map((name, index) => {
-										return (
-											<Link key={name} href={`https://shopee.vn/search?keyword=${name}`} target='_blank'>
-												_{name}: {response.scores[index]}
-												<br />
-											</Link>
-										)
-								  })
-								: null}
+							{response.url && (
+								<Card>
+									<ImageList
+										sx={{ width: '100%', height: 400 }}
+										cols={3}
+										rowHeight={150}
+										style={{
+											backgroundColor: '#f0f0f0',
+											boxShadow: 'box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px',
+										}}
+									>
+										{response.url.map((item) => (
+											<ImageListItem>
+												<img
+													src={`${item}?w=164&h=164&fit=crop&auto=format`}
+													srcSet={`${item}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
+													loading='lazy'
+													alt=''
+												/>
+											</ImageListItem>
+										))}
+									</ImageList>
+								</Card>
+							)}
 						</Grid>
 						<Grid item sm={12} textAlign='center'>
 							{isLoading ? (
@@ -162,35 +257,8 @@ function App() {
 								</Button>
 							)}
 						</Grid>
-						<Grid
-							item
-							sm={12}
-							style={{
-								padding: '2.3rem',
-							}}
-						>
-							{response.url && (
-								<ImageList
-									sx={{ width: 500, height: 450 }}
-									cols={3}
-									rowHeight={164}
-									style={{
-										backgroundColor: '#f0f0f0',
-										boxShadow: 'box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px',
-									}}
-								>
-									{response.url.map((item) => (
-										<ImageListItem>
-											<img
-												src={`${item}?w=164&h=164&fit=crop&auto=format`}
-												srcSet={`${item}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
-												loading='lazy'
-												alt=''
-											/>
-										</ImageListItem>
-									))}
-								</ImageList>
-							)}
+						<Grid item sm={12}>
+							{response.names && <ResultsTable names={response.names} scores={response.scores} />}
 						</Grid>
 					</Grid>
 				</form>
